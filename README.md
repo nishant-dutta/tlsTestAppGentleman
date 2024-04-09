@@ -5,3 +5,6 @@ go get -u gopkg.in/h2non/gentleman.v2
 go mod init github.com/nishant-dutta/tlsTestAppGentleman
 
 go mod tidy
+
+#################################
+go get -u gopkg.in/h2non/gentleman.v2/plugins/tls

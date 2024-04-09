@@ -2,21 +2,37 @@ package main
 
 import (
 	"log"
+	"os"
+
+	"crypto/tls"
+	"crypto/x509"
 
 	"gopkg.in/h2non/gentleman.v2"
+	gtls "gopkg.in/h2non/gentleman.v2/plugins/tls"
 )
 
 func main() {
+	caCert, err := os.ReadFile("./certificates/cert.pem")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
 	cli := gentleman.New()
 
+	config := &tls.Config{
+		RootCAs: caCertPool,
+	}
+
+	cli.Use(gtls.Config(config))
+
 	// Define base URL
-	cli.URL("http://localhost:8080/hello")
+	cli.URL("https://localhost:8443/hello")
 
 	// Create a new request based on the current client
 	req := cli.Request()
-
-	// Define the URL path at request level
-	// req.Path("/hello")
 
 	// Set a new header field
 	req.SetHeader("Client", "gentleman")
