@@ -20,10 +20,16 @@ func main() {
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCert)
 
+	cert, err := tls.LoadX509KeyPair("./certificates/cert.pem", "./certificates/key.pem")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	cli := gentleman.New()
 
 	config := &tls.Config{
-		RootCAs: caCertPool,
+		RootCAs:      caCertPool,
+		Certificates: []tls.Certificate{cert},
 	}
 
 	cli.Use(gtls.Config(config))

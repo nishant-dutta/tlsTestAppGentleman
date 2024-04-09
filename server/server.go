@@ -1,9 +1,12 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"io"
 	"log"
 	"net/http"
+	"os"
 )
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
@@ -17,6 +20,27 @@ func main() {
 	http.HandleFunc("/hello", helloHandler)
 
 	// Listen to port 8443 and wait
-	// Front-Door-TLS
-	log.Fatal(http.ListenAndServeTLS(":8443", "./certificates/cert.pem", "./certificates/key.pem", nil))
+	// Mutual-TLS
+	caCert, err := os.ReadFile("./certificates/cert.pem")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	// Create the TLS Config with the CA pool and enable Client certificate validation
+	tlsConfig := &tls.Config{
+		ClientCAs:  caCertPool,
+		ClientAuth: tls.RequireAndVerifyClientCert,
+	}
+
+	// Create a Server instance to listen on port 8443 with the TLS Config
+	server := &http.Server{
+		Addr:      ":8443",
+		TLSConfig: tlsConfig,
+	}
+
+	// Listen to HTTPS connections with the server certificate and wait
+	log.Fatal(server.ListenAndServeTLS("./certificates/cert.pem", "./certificates/key.pem"))
 }
